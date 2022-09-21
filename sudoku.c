@@ -50,7 +50,6 @@ int main(int argc, char *argv[])
         printf("We are using worker threads.\n");
     }
 
-
     return 0;
 }
 
