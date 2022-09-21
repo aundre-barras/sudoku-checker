@@ -1,0 +1,132 @@
+--------------------------------------------------------------------------
+
+            +-------------------------+
+            | CS 450                  |
+            | PROJECT: SUDOKU CHECKER |
+            | DESIGN DOCUMENT         |
+            +-------------------------+
+
+---- GROUP ----
+
+>> Fill in the names and email addresses of your group members.
+
+FirstName LastName <email@domain.example>
+FirstName LastName <email@domain.example>
+
+---- PRELIMINARIES ----
+
+>> If you have any preliminary comments on your submission or
+>> bug notes, please give them here.
+
+>> Please cite any offline or online sources you consulted while
+>> preparing your submission, other than man pages, course
+>> text, lecture notes, and course staff.
+
+
+               THREADED SUDOKU CHECKER
+               =======================
+
+---- EXPLORE THE PROBLEM ----
+
+>> A1: Given the problem decomposition described in the requirements
+>> for Part A, to achieve the maximum parallelism how many
+>> threads would need to be running concurrently?
+
+---- DATA STRUCTURES ----
+
+>> A2: Copy here the declaration of each new or changed `struct', 
+>> `struct' member, global or static variable, `typedef', or enumeration.
+>> Identify the purpose of each in 2--25 words.
+
+---- FUNCTIONS ----
+
+>> A3: Provide a prototype and documentation for each function
+>> you have introduced to support this portion of the project.
+>> Use the Google Style Guide for function documentation.
+
+---- ALGORITHMS ----
+
+>> A4: Briefly describe how you communicated to each worker thread
+>> the work it should perform, as a void *
+
+>> A5: Briefly describe the function(s) run by each worker. Explain
+>> if any memory memory is shared among threads.
+
+>> A6: Explain how the main thread knows when all the worker
+>> threads have completed their work.
+
+>> A7: Explain how the main thread knows when a particular worker
+>> thread has reported a property is missing.
+
+---- RATIONALE ----
+
+>> A8: Explain how you ensured that your program has no resource leaks.
+>> List all the free-able resources and, for each, explain how you
+>> free them at the earliest possible time.
+
+
+               FORKING SUDOKU CHECKER
+               =======================
+
+---- EXPLORE THE PROBLEM ----
+
+>> B1: From a design perspective, is there any reason your
+>> forking design cannot be as parallel as your threaded
+>> solution? If not, how many child processes may be
+>> running concurrently at any time?
+
+---- DATA STRUCTURES ----
+
+>> B2: Copy here the declaration of each new `struct',
+>> `struct' member, global or static variable, `typedef', or
+>> enumeration.  Identify the purpose of each in 2--25 words.
+>> Do not repeat anything already described in A2.
+
+---- FUNCTIONS ----
+
+>> B3: Provide a prototype and documentation for each function
+>> you have introduced to support this portion of the project.
+>> Use the Google Style Guide for function documentation.
+>> Do not repeat anything already described in A3.
+
+---- ALGORITHMS ----
+
+>> B4: Briefly describe the method of communicating with each child
+>> process and if the function(s) run by each child were different than
+>> the functions used by the child threads in Part A.
+
+>> B5: Explain how the parent process knows when all the worker
+>> child have completed their work.
+
+>> B6: Explain how the parent process knows when a particular worker
+>> child has reported a property is missing.
+
+---- RATIONALE ----
+
+>> B7: Explain how you ensured that your program has no resource leaks.
+>> List all the free-able resources and, for each, explain how you
+>> free them at the earliest possible time.
+
+
+
+               SURVEY QUESTIONS
+               ================
+
+>> Answering these questions is optional, but it will help us improve the
+>> course in future quarters.  Feel free to tell us anything you
+>> want--these questions are just to spur your thoughts.  You may also
+>> choose to respond anonymously in the course evaluations at the end of
+>> the semester.
+
+>> In your opinion, was this assignment, or any one of the problems
+>> in it, too easy or too hard?  Did it take too long or too little time?
+
+>> Did you find that working on a particular part of the assignment gave
+>> you greater insight into some aspect of OS design?
+
+>> Is there some particular fact or hint we should give students in
+>> future quarters to help them solve the problems?  Conversely, did you
+>> find any of our guidance to be misleading?
+
+>> Any other comments?
+
