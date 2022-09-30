@@ -39,6 +39,38 @@ void parse_args(int argc, char *argv[])
     }
 }
 
+struct sudoku {
+    int grid[9][9];
+    // int isValid;
+};
+
+struct sudoku * readSudokuFile(){
+    struct sudoku* sudoku_file = NULL;
+    sudoku_file = (struct sudoku*)malloc(sizeof(struct sudoku));
+    // sudoku_file->isValid = 1;
+    int cur;
+    for(int i = 0; i < 9; i++){
+        for(int j = 0; j < 9; j++){
+                cur = fgetc(stdin);
+                while((cur == ' ') || (cur == '\n') || (cur == '\r')){
+                    cur = fgetc(stdin);  
+                }
+                sudoku_file->grid[i][j] = cur - '0';
+        }
+    }
+    return sudoku_file;
+}
+
+void printPuzzle(struct sudoku* p) {
+    for(int i = 0; i < 9; i++)
+    {
+        for(int j = 0; j < 9; j++)
+        {
+            printf("%d ", p->grid[i][j]);
+        }
+        printf("\n");
+    }
+}
 
 int main(int argc, char *argv[])
 {
@@ -50,6 +82,11 @@ int main(int argc, char *argv[])
         printf("We are using worker threads.\n");
     }
 
+    struct sudoku* sdk = readSudokuFile();
+    // printPuzzle(sdk);
+    
+    free(sdk);
+    
     return 0;
 }
 
