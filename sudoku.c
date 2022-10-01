@@ -85,6 +85,7 @@ static void *validateCol(void* sdk){
     if(flag!=0x01FF){
         printf("Column %d doesn't have the required values.\n", scol->colID + 1);
     }
+    // printf("Tested: col %d.\n", scol->colID + 1);
 }
 
 static void *validateRow(void* sdk){
@@ -96,11 +97,14 @@ static void *validateRow(void* sdk){
     if(flag!=0x01FF){
         printf("Row %d doesn't have the required values.\n", srow->rowID + 1);
     }
+    // printf("Tested: row %d.\n", srow->rowID + 1);
 }
 
-void *validateSquare(void* sdk){
+// static void *validateSquare(void* sdk){
+//     struct sudoku *square = sdk;
+//     int flag = 0x0000;
 
-}
+// }
 
 int main(int argc, char *argv[])
 {
@@ -121,25 +125,22 @@ int main(int argc, char *argv[])
     for(int i = 0; i < 9; i++){
         for(int j = 0; j < 9; j++){
             if(i == 0){ //col
-                sdk->rowID = i;
                 sdk->colID = j;
-                pthread_create(&threads[threadsIdx++], NULL, validateCol, sdk);
+                pthread_create(&threads[i + j], NULL, validateCol, sdk);
+                pthread_join(threads[i + j], NULL);
+
             }
             if(j == 0){ //row
                 sdk->rowID = i;
-                sdk->colID = j;
-                pthread_create(&threads[threadsIdx++], NULL, validateRow, sdk);
+                pthread_create(&threads[i + j], NULL, validateRow, sdk);
+                pthread_join(threads[i + j], NULL);
             }
             // if(i%3 == 0 && j%3 == 0){ //3x3 grid
             //     sdk->rowID = i;
             //     sdk->colID = j;
-            //     pthread_create(&threads[threadsIdx++], NULL, &validateSquare, &sdk);
+            //     pthread_create(&threads[threadsIdx++], NULL, validateSquare, sdk);
             // }
         }
-    }
-
-    for(int i = 0; i < 18; i++){
-        pthread_join(threads[i], NULL);
     }
  
     // if(sdk->isValid == 1)
