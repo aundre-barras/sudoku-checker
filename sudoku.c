@@ -100,11 +100,19 @@ static void *validateRow(void* sdk){
     // printf("Tested: row %d.\n", srow->rowID + 1);
 }
 
-// static void *validateSquare(void* sdk){
-//     struct sudoku *square = sdk;
-//     int flag = 0x0000;
+static void *validateSubgrid(void* sdk){
+    struct sudoku *ssg = sdk;
+    int flag = 0x0000;
 
-// }
+    for(int i = ssg->rowID; i < ssg->rowID + 3; i++){
+        for(int j = ssg->colID; j < ssg->colID + 3; j++){
+            flag|=1<<(ssg->grid[i][j]-1);
+        }
+    }
+    if(flag!=0x01FF){
+        printf("Subgrid doesn't have the required values.\n");
+    }
+}
 
 int main(int argc, char *argv[])
 {
@@ -119,7 +127,7 @@ int main(int argc, char *argv[])
     struct sudoku* sdk = readSudokuFile();
     // printPuzzle(sdk);
 
-    pthread_t threads[18];
+    pthread_t threads[27];
     int threadsIdx = 0;
 
     for(int i = 0; i < 9; i++){
@@ -128,18 +136,18 @@ int main(int argc, char *argv[])
                 sdk->colID = j;
                 pthread_create(&threads[i + j], NULL, validateCol, sdk);
                 pthread_join(threads[i + j], NULL);
-
             }
             if(j == 0){ //row
                 sdk->rowID = i;
                 pthread_create(&threads[i + j], NULL, validateRow, sdk);
                 pthread_join(threads[i + j], NULL);
             }
-            // if(i%3 == 0 && j%3 == 0){ //3x3 grid
-            //     sdk->rowID = i;
-            //     sdk->colID = j;
-            //     pthread_create(&threads[threadsIdx++], NULL, validateSquare, sdk);
-            // }
+            if(i%3 == 0 && j%3 == 0){ //3x3 subgrid
+                sdk->rowID = i;
+                sdk->colID = j;
+                pthread_create(&threads[i + j], NULL, validateSubgrid, sdk);
+                pthread_join(threads[i + j], NULL);
+            }
         }
     }
  
