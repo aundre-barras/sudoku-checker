@@ -42,7 +42,7 @@ void parse_args(int argc, char *argv[])
 
 struct sudoku {
     int grid[9][9];
-    int isValid;
+    // int isValid;
     int rowID;
     int colID;
 };
@@ -50,7 +50,7 @@ struct sudoku {
 struct sudoku * readSudokuFile(){
     struct sudoku* sudoku_file = NULL;
     sudoku_file = (struct sudoku*)malloc(sizeof(struct sudoku));
-    sudoku_file->isValid = 1;
+    // sudoku_file->isValid = 1;
     int cur;
     for(int i = 0; i < 9; i++){
         for(int j = 0; j < 9; j++){
@@ -83,7 +83,9 @@ static void *validateCol(void* sdk){
     }
     if(flag!=0x01FF){
         printf("Column %d doesn't have the required values.\n", scol->colID + 1);
+        return 1;
     }
+    return 0;
     // printf("Tested: col %d.\n", scol->colID + 1);
 }
 
@@ -95,7 +97,9 @@ static void *validateRow(void* sdk){
     }
     if(flag!=0x01FF){
         printf("Row %d doesn't have the required values.\n", srow->rowID + 1);
+        return 1;
     }
+    return 0;
     // printf("Tested: row %d.\n", srow->rowID + 1);
 }
 
@@ -128,7 +132,9 @@ static void *validateSubgrid(void* sdk){
             printf("The bottom middle subgrid doesn't have the required values.\n");}
         else if(ssg->rowID == 6 && ssg->colID == 6){
             printf("The bottom right subgrid doesn't have the required values.\n");}
+        return 1;
         }
+    return 0;
 }
 
 int main(int argc, char *argv[])
@@ -146,32 +152,37 @@ int main(int argc, char *argv[])
 
     pthread_t threads[27];
     int threadsIdx = 0;
+    void *status;
+    int isValid = 1;
 
     for(int i = 0; i < 9; i++){
         for(int j = 0; j < 9; j++){
             if(i == 0){ //col
                 sdk->colID = j;
                 pthread_create(&threads[i + j], NULL, validateCol, sdk);
-                pthread_join(threads[i + j], NULL);
+                pthread_join(threads[i + j], &status);
             }
             if(j == 0){ //row
                 sdk->rowID = i;
                 pthread_create(&threads[i + j], NULL, validateRow, sdk);
-                pthread_join(threads[i + j], NULL);
+                pthread_join(threads[i + j], &status);
             }
             if(i%3 == 0 && j%3 == 0){ //3x3 subgrid
                 sdk->rowID = i;
                 sdk->colID = j;
                 pthread_create(&threads[i + j], NULL, validateSubgrid, sdk);
-                pthread_join(threads[i + j], NULL);
+                pthread_join(threads[i + j], &status);
+            }
+            if(status == 1){
+                isValid = 0;
             }
         }
     }
- 
-    // if(sdk->isValid == 1)
-    //     printf("The input is a valid Sudoku.\n");
-    // else
-    //     printf("The input is not a valid Sudoku.\n");
+
+    if(isValid == 1)
+        printf("The input is a valid Sudoku.\n");
+    else
+        printf("The input is not a valid Sudoku.\n");
     
     free(sdk);
     
