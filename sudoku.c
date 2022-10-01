@@ -40,14 +40,12 @@ void parse_args(int argc, char *argv[])
     }
 }
 
-struct rcInfo { // row and col info
-    int row;
-    int col;
-};
-
 struct sudoku {
     int grid[9][9];
     int isValid;
+    int rowID;
+    int colID;
+    int gridID;
 };
 
 struct sudoku * readSudokuFile(){
@@ -78,15 +76,29 @@ void printPuzzle(struct sudoku* p) {
     }
 }
 
-void validateCol(){
-
+static void *validateCol(void* sdk){
+    struct sudoku *scol = sdk;
+    int flag = 0x0000;
+    for(int i = 0; i < 9; i++){
+        flag|=1<<(scol->grid[i][scol->colID]-1);
+    }
+    if(flag!=0x01FF){
+        printf("Column %d doesn't have the required values.\n", scol->colID + 1);
+    }
 }
 
-void validateRow(){
-
+static void *validateRow(void* sdk){
+    struct sudoku *srow = sdk;
+    int flag = 0x0000;
+    for(int j = 0; j < 9; j++){
+        flag|=1<<(srow->grid[srow->rowID][j]-1);
+    }
+    if(flag!=0x01FF){
+        printf("Row %d doesn't have the required values.\n", srow->rowID + 1);
+    }
 }
 
-void validateGrid(){
+void *validateSquare(void* sdk){
 
 }
 
@@ -103,40 +115,37 @@ int main(int argc, char *argv[])
     struct sudoku* sdk = readSudokuFile();
     // printPuzzle(sdk);
 
-    pthread_t threads[27];
+    pthread_t threads[18];
     int threadsIdx = 0;
 
     for(int i = 0; i < 9; i++){
         for(int j = 0; j < 9; j++){
             if(i == 0){ //col
-                struct rcInfo* col_info = (struct rcInfo*)malloc(sizeof(struct rcInfo));
-                col_info->row = i;
-                col_info->col = j;
-                pthread_create(&threads[threadsIdx++], NULL, validateCol, col_info);
+                sdk->rowID = i;
+                sdk->colID = j;
+                pthread_create(&threads[threadsIdx++], NULL, validateCol, sdk);
             }
             if(j == 0){ //row
-                struct rcInfo* row_info = (struct rcInfo*)malloc(sizeof(struct rcInfo));
-                row_info->row = i;
-                row_info->col = j;
-                pthread_create(&threads[threadsIdx++], NULL, validateRow, row_info);
+                sdk->rowID = i;
+                sdk->colID = j;
+                pthread_create(&threads[threadsIdx++], NULL, validateRow, sdk);
             }
-            if(i%3 == 0 && j%3 == 0){ //3x3 grid
-                struct rcInfo* grid_info = (struct rcInfo*)malloc(sizeof(struct rcInfo));
-                grid_info->row = i;
-                grid_info->col = j;
-                pthread_create(&threads[threadsIdx++], NULL, validateGrid, grid_info);
-            }
+            // if(i%3 == 0 && j%3 == 0){ //3x3 grid
+            //     sdk->rowID = i;
+            //     sdk->colID = j;
+            //     pthread_create(&threads[threadsIdx++], NULL, &validateSquare, &sdk);
+            // }
         }
     }
 
-    for(int i = 0; i < 27; i++){
-        pthread_join(threads[i],NULL);
+    for(int i = 0; i < 18; i++){
+        pthread_join(threads[i], NULL);
     }
-
-    if(sdk->isValid == 1)
-        printf("The input is a valid Sudoku.\n");
-    else
-        printf("The input is not a valid Sudoku.\n");
+ 
+    // if(sdk->isValid == 1)
+    //     printf("The input is a valid Sudoku.\n");
+    // else
+    //     printf("The input is not a valid Sudoku.\n");
     
     free(sdk);
     
