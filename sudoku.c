@@ -45,7 +45,6 @@ struct sudoku {
     int isValid;
     int rowID;
     int colID;
-    int gridID;
 };
 
 struct sudoku * readSudokuFile(){
@@ -109,9 +108,27 @@ static void *validateSubgrid(void* sdk){
             flag|=1<<(ssg->grid[i][j]-1);
         }
     }
+
     if(flag!=0x01FF){
-        printf("Subgrid doesn't have the required values.\n");
-    }
+        if(ssg->rowID == 0 && ssg->colID == 0){
+            printf("The top left subgrid doesn't have the required values.\n");}
+        else if(ssg->rowID == 0 && ssg->colID == 3){
+            printf("The top center subgrid doesn't have the required values.\n");}
+        else if(ssg->rowID == 0 && ssg->colID == 6){
+            printf("The top right subgrid doesn't have the required values.\n");} 
+        else if(ssg->rowID == 3 && ssg->colID == 0){
+            printf("The middle left subgrid doesn't have the required values.\n");}
+        else if(ssg->rowID == 3 && ssg->colID == 3){
+            printf("The middle center subgrid doesn't have the required values.\n");}
+        else if(ssg->rowID == 3 && ssg->colID == 6){
+            printf("The middle right subgrid doesn't have the required values.\n");}
+        else if(ssg->rowID == 6 && ssg->colID == 0){
+            printf("The bottom left subgrid doesn't have the required values.\n");}
+        else if(ssg->rowID == 6 && ssg->colID == 3){
+            printf("The bottom middle subgrid doesn't have the required values.\n");}
+        else if(ssg->rowID == 6 && ssg->colID == 6){
+            printf("The bottom right subgrid doesn't have the required values.\n");}
+        }
 }
 
 int main(int argc, char *argv[])
