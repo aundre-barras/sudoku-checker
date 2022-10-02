@@ -53,11 +53,7 @@ struct sudoku * readSudokuFile(){
     int cur;
     for(int i = 0; i < 9; i++){
         for(int j = 0; j < 9; j++){
-                cur = fgetc(stdin);
-                while((cur == ' ') || (cur == '\n') || (cur == '\r') || (cur == 194) || (cur == 160)){                    
-                    cur = fgetc(stdin);
-                }
-                sudoku_file->grid[i][j] = cur - '0';
+                scanf("%hhd", &(sudoku_file->grid[i][j]));
         }
     }
     return sudoku_file;
@@ -185,13 +181,13 @@ int fork_process(struct sudoku* sdk)  {
         if(col_status == 0 || row_status == 0 || sg_status == 0)
             isValid = 0;
     }
-
     return isValid;
 }
 
 int thread_process(struct sudoku* sdk) {
     pthread_t threads[27];
     void* status;
+    
     for(int i = 0; i < 9; i++){ // col
         struct sudoku* sdkc = (malloc(sizeof(struct sudoku)));
         *sdkc = *sdk;
