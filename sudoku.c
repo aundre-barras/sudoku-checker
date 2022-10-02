@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <getopt.h>
 #include <pthread.h>
+#include <wait.h>
 
 /* These are the only two global variables allowed in your program */
 static int verbose = 0;
@@ -53,8 +54,8 @@ struct sudoku * readSudokuFile(){
     for(int i = 0; i < 9; i++){
         for(int j = 0; j < 9; j++){
                 cur = fgetc(stdin);
-                while((cur == ' ') || (cur == '\n') || (cur == '\r') || (cur == '\t')){
-                    cur = fgetc(stdin);  
+                while((cur == ' ') || (cur == '\n') || (cur == '\r') || (cur == 194) || (cur == 160)){                    
+                    cur = fgetc(stdin);
                 }
                 sudoku_file->grid[i][j] = cur - '0';
         }
@@ -62,12 +63,10 @@ struct sudoku * readSudokuFile(){
     return sudoku_file;
 }
 
-void printPuzzle(struct sudoku* p) {
-    for(int i = 0; i < 9; i++)
-    {
-        for(int j = 0; j < 9; j++)
-        {
-            printf("%d ", p->grid[i][j]);
+void printPuzzle(struct sudoku* s) {
+    for(int i = 0; i < 9; i++){
+        for(int j = 0; j < 9; j++){
+            printf("%d ", s->grid[i][j]);
         }
         printf("\n");
     }
@@ -149,48 +148,86 @@ int main(int argc, char *argv[])
     }
 
     struct sudoku* sdk = readSudokuFile();
-    // printPuzzle(sdk);
-
-    pthread_t threads[27];
+    if(verbose)
+        printPuzzle(sdk);
+    
     void *status;
     int isValid = 1;
 
-    for(int i = 0; i < 9; i++){
-        struct sudoku* sdkc = (malloc(sizeof(struct sudoku)));
-        *sdkc = *sdk;
-        sdkc->colID = i;
-        sdkc->rowID = 0;
-        pthread_create(&threads[i], NULL, validateCol, sdkc);
-        // printf("creating thread %d\n", i);
-    }
-    for(int i = 0; i < 9; i++){
-        struct sudoku* sdkr = (malloc(sizeof(struct sudoku)));
-        *sdkr = *sdk;
-        sdkr->rowID = i;
-        sdkr->colID = 0;
-        pthread_create(&threads[i + 9], NULL, validateRow, sdkr);
-        // printf("creating thread %d\n", i+9);
-
-    }
-    int sgCounter = 18;
-    for(int i = 0; i < 9; i++){
-        for(int j = 0; j < 9; j++){
-            if(i%3 == 0 && j%3 == 0){
-                struct sudoku* sdksg = (malloc(sizeof(struct sudoku)));
-                *sdksg = *sdk;
-                sdksg->colID = i;
-                sdksg->rowID = j;
-                pthread_create(&threads[sgCounter], NULL, validateSubgrid, (void *) sdksg);
-                // printf("creating thread %d using %d and %d\n", sgCounter, i, j);
-                sgCounter++;
+    if(use_fork){
+        // fork child processes to do the work
+        pthread_t child_pids[27];
+        for(int i = 0; i < 9; i++){
+            struct sudoku* sdkc = (malloc(sizeof(struct sudoku)));
+            *sdkc = *sdk;
+            sdkc->colID = i;
+            sdkc->rowID = 0;
+            child_pids[i] = fork();
+            pthread_create(&child_pids[i], NULL, validateCol, sdkc);
+            // printf("creating thread %d\n", i);
+        }
+        for(int i = 0; i < 9; i++){
+            struct sudoku* sdkr = (malloc(sizeof(struct sudoku)));
+            *sdkr = *sdk;
+            sdkr->rowID = i;
+            sdkr->colID = 0;
+            child_pids[i + 9] = fork();
+            pthread_create(&child_pids[i + 9], NULL, validateRow, sdkr);
+            // printf("creating thread %d\n", i+9);
+        }
+        int sgCounter = 18;
+        for(int i = 0; i < 9; i++){
+            for(int j = 0; j < 9; j++){
+                if(i%3 == 0 && j%3 == 0){
+                    struct sudoku* sdksg = (malloc(sizeof(struct sudoku)));
+                    *sdksg = *sdk;
+                    sdksg->colID = i;
+                    sdksg->rowID = j;
+                    child_pids[i + 18] = fork();
+                    pthread_create(&child_pids[sgCounter], NULL, validateSubgrid, (void *) sdksg);
+                    // printf("creating thread %d using %d and %d\n", sgCounter, i, j);
+                    sgCounter++;
+                }
             }
         }
     }
-    
-    for(int i = 0; i < 27; i++){
-        pthread_join(threads[i], &status);
-        if(status == 1){
-            isValid = 0;
+    else{
+        pthread_t threads[27];
+        for(int i = 0; i < 9; i++){
+            struct sudoku* sdkc = (malloc(sizeof(struct sudoku)));
+            *sdkc = *sdk;
+            sdkc->colID = i;
+            sdkc->rowID = 0;
+            pthread_create(&threads[i], NULL, validateCol, sdkc);
+            // printf("creating thread %d\n", i);
+        }
+        for(int i = 0; i < 9; i++){
+            struct sudoku* sdkr = (malloc(sizeof(struct sudoku)));
+            *sdkr = *sdk;
+            sdkr->rowID = i;
+            sdkr->colID = 0;
+            pthread_create(&threads[i + 9], NULL, validateRow, sdkr);
+            // printf("creating thread %d\n", i+9);
+        }
+        int sgCounter = 18;
+        for(int i = 0; i < 9; i++){
+            for(int j = 0; j < 9; j++){
+                if(i%3 == 0 && j%3 == 0){
+                    struct sudoku* sdksg = (malloc(sizeof(struct sudoku)));
+                    *sdksg = *sdk;
+                    sdksg->colID = i;
+                    sdksg->rowID = j;
+                    pthread_create(&threads[sgCounter], NULL, validateSubgrid, (void *) sdksg);
+                    // printf("creating thread %d using %d and %d\n", sgCounter, i, j);
+                    sgCounter++;
+                }
+            }
+        }
+        for(int i = 0; i < 27; i++){
+            pthread_join(threads[i], &status);
+            if(status == 1){
+                isValid = 0;
+            }
         }
     }
 
