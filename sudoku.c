@@ -73,7 +73,6 @@ void printPuzzle(struct sudoku* s) {
 }
 
 static void *validateCol(void* sdk){
-    // struct sudoku *scol = (struct sudoku*)sdk;
     struct sudoku scol = *((struct sudoku*)sdk);
     int flag = 0x0000;
     for(int i = 0; i < 9; i++){
@@ -88,7 +87,6 @@ static void *validateCol(void* sdk){
 }
 
 static void *validateRow(void* sdk){
-    // struct sudoku *srow = (struct sudoku*)sdk;
     struct sudoku srow = *((struct sudoku*)sdk);
     int flag = 0x0000;
     for(int j = 0; j < 9; j++){
@@ -103,7 +101,6 @@ static void *validateRow(void* sdk){
 }
 
 static void *validateSubgrid(void* sdk){
-    // struct sudoku *ssg = (struct sudoku*)sdk;
     struct sudoku ssg = *((struct sudoku*)sdk);
     int flag = 0x0000;
 
@@ -139,46 +136,63 @@ static void *validateSubgrid(void* sdk){
 
 int fork_process(struct sudoku* sdk)  {
     // fork child processes to do the work
-    pthread_t child_pids[27];
-    for(int i = 0; i < 9; i++){
+    pid_t child_pids_col[9];
+    pid_t child_pids_row[9];
+    pid_t child_pids_sg[9];
+
+    for(int i = 0; i < 9; i++){ // col
         struct sudoku* sdkc = (malloc(sizeof(struct sudoku)));
         *sdkc = *sdk;
         sdkc->colID = i;
         sdkc->rowID = 0;
-        child_pids[i] = fork();
-        pthread_create(&child_pids[i], NULL, validateCol, sdkc);
-        // printf("creating thread %d\n", i);
+        child_pids_col[i] = fork();
+        if(!child_pids_col[i]){
+            exit(!validateCol(sdkc));
+        }
     }
-    for(int i = 0; i < 9; i++){
+    for(int i = 0; i < 9; i++){ // row
         struct sudoku* sdkr = (malloc(sizeof(struct sudoku)));
         *sdkr = *sdk;
         sdkr->rowID = i;
         sdkr->colID = 0;
-        child_pids[i + 9] = fork();
-        pthread_create(&child_pids[i + 9], NULL, validateRow, sdkr);
-        // printf("creating thread %d\n", i+9);
+        child_pids_row[i] = fork();
+        if(!child_pids_row[i]){
+            exit(!validateRow(sdkr));
+        }
     }
-    int sgCounter = 18;
-    for(int i = 0; i < 9; i++){
+    int sgCounter = 0;
+    for(int i = 0; i < 9; i++){ // subgrid
         for(int j = 0; j < 9; j++){
             if(i%3 == 0 && j%3 == 0){
                 struct sudoku* sdksg = (malloc(sizeof(struct sudoku)));
                 *sdksg = *sdk;
                 sdksg->colID = i;
                 sdksg->rowID = j;
-                child_pids[i + 18] = fork();
-                pthread_create(&child_pids[sgCounter], NULL, validateSubgrid, (void *) sdksg);
-                // printf("creating thread %d using %d and %d\n", sgCounter, i, j);
+                child_pids_sg[sgCounter] = fork();
+                if(!child_pids_sg[sgCounter]){
+                    exit(!validateSubgrid(sdksg));
+                }
                 sgCounter++;
             }
         }
-    }    
+    }
+    int col_status, row_status, sg_status;
+    int isValid = 1;
+    for(int i = 0; i < 9; i++){
+        waitpid(child_pids_col[i], &col_status, 0);
+        waitpid(child_pids_row[i], &row_status, 0);
+        waitpid(child_pids_sg[i], &sg_status, 0);
+        if(col_status == 0 || row_status == 0 || sg_status == 0)
+            isValid = 0;
+    }
+
+    return isValid;
 }
 
 int thread_process(struct sudoku* sdk) {
     pthread_t threads[27];
     void* status;
-    for(int i = 0; i < 9; i++){
+    for(int i = 0; i < 9; i++){ // col
         struct sudoku* sdkc = (malloc(sizeof(struct sudoku)));
         *sdkc = *sdk;
         sdkc->colID = i;
@@ -186,7 +200,7 @@ int thread_process(struct sudoku* sdk) {
         pthread_create(&threads[i], NULL, validateCol, sdkc);
         // printf("creating thread %d\n", i);
     }
-    for(int i = 0; i < 9; i++){
+    for(int i = 0; i < 9; i++){  // row
         struct sudoku* sdkr = (malloc(sizeof(struct sudoku)));
         *sdkr = *sdk;
         sdkr->rowID = i;
@@ -195,7 +209,7 @@ int thread_process(struct sudoku* sdk) {
         // printf("creating thread %d\n", i+9);
     }
     int sgCounter = 18;
-    for(int i = 0; i < 9; i++){
+    for(int i = 0; i < 9; i++){  // subgrid
         for(int j = 0; j < 9; j++){
             if(i%3 == 0 && j%3 == 0){
                 struct sudoku* sdksg = (malloc(sizeof(struct sudoku)));
